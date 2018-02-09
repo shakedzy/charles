@@ -2,3 +2,5 @@ syntax: glob
 .idea/*
 *.iml
 target/*
+.DS_Store
+*.DS_Store
