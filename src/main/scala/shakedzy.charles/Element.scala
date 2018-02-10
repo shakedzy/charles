@@ -21,7 +21,7 @@ class Element[T](genes: Seq[T]) extends Ordered[Element[T]]{
 
   protected def safeStrength(strengthFunction: Seq[T] => Double): Double = {
     strengthFunction(_genes) match {
-      case n if n < 0.0 => throw new RuntimeException(s"Encountered negative strength for element $_genes")
+      case n if n < 0.0 => throw new RuntimeException(s"Encountered negative strength for element ${_genes}")
       case n => n
     }
   }

@@ -3,7 +3,7 @@ package shakedzy.charles
 import BinaryUtils._
 
 object OffspringFunctions {
-  def sliceAndStitch[T](values: Seq[T], random: Random)(element1: Seq[T], element2: Seq[T]): (Seq[T],Seq[T]) = {
+  def sliceAndStitch[T](values: Seq[T], random: scala.util.Random)(element1: Seq[T], element2: Seq[T]): (Seq[T],Seq[T]) = {
     val singleGeneBitsNum = getSingleGeneBitsNum(values)
     val r = random.nextInt(values.length * singleGeneBitsNum)
     val bits1 = seqToBinaryString(element1,values)
@@ -12,7 +12,7 @@ object OffspringFunctions {
     val newBits2 = bits2.take(r) + bits1.drop(r)
     (binaryStringToSeq(newBits1,values),binaryStringToSeq(newBits2,values))
   }
-  def parentsSimilarity[T](values: Seq[T], random: Random)(element1: Seq[T], element2: Seq[T]): (Seq[T],Seq[T]) = {
+  def parentsSimilarity[T](values: Seq[T], random: scala.util.Random)(element1: Seq[T], element2: Seq[T]): (Seq[T],Seq[T]) = {
     def createChild(bits1: String, bits2: String): String = {
       Range(0,bits1.length).map(i => {
         val r = random.nextDouble()

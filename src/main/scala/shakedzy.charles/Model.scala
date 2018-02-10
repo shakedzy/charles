@@ -5,6 +5,7 @@ import scala.math._
 import scala.util.control.Breaks._
 
 class Model[T](population: Seq[Seq[T]],
+               allValues: Seq[T],
                strengthFunction: Seq[T] => Double,
                offspringFunction: (Seq[T],Seq[T]) => (Seq[T],Seq[T]),
                elitismRatio: Double = 0.1,
@@ -19,10 +20,9 @@ class Model[T](population: Seq[Seq[T]],
   protected var _generations: Int = _
   protected var _seed: Long = _
   protected var elements: Array[Element[T]] = _
-  protected var allValues: Seq[T] = _
 
   protected implicit val random: Random = new Random
-  private implicit val order: Ordering[Element[T]] = Ordering[Element[T]].reverse
+  //private implicit val order: Ordering[Element[T]] = Ordering[Element[T]].reverse
 
   setStrengthFunction(strengthFunction)
   setOffspringFunction(offspringFunction)
@@ -47,13 +47,10 @@ class Model[T](population: Seq[Seq[T]],
     _seed = seed
     random.setSeed(seed)
   }
-  def setPopulation(population: Seq[Seq[T]]): Unit = {
-    if (population.map(el => el.length).forall(len => len == population.head.length)) {
+  protected def setPopulation(population: Seq[Seq[T]]): Unit = {
+    if (population.map(el => el.length).forall(len => len == population.head.length))
       elements = population.map(subject => new Element(subject)).toArray
-      allValues = population.flatten.distinct
-    } else {
-      throw new RuntimeException("All subjects in the population must have the same size.")
-    }
+    else throw new RuntimeException("All subjects in the population must have the same size.")
   }
 
   def getStrengthFunction: Seq[T] => Double = _strengthFunction
@@ -91,6 +88,10 @@ class Model[T](population: Seq[Seq[T]],
     selected
   }
 
+  def reset(): Unit = setPopulation(population)
+  def getBest: Seq[T] = elements.head.getGenes
+  def getBest(n: Int): Seq[Seq[T]] = elements.take(n).map(_.getGenes)
+
   def evolve(): Unit = {
     breakable {
       for (g <- Range(0,_generations+1)) {
@@ -113,7 +114,7 @@ class Model[T](population: Seq[Seq[T]],
         elements.foreach(_.setStrength(_strengthFunction))
         val totalStrength = elements.map(_.getStrength).sum
         elements.foreach(_.strengthToProbability(totalStrength))
-        Sorting.quickSort(elements)
+        Sorting.quickSort[Element[T]](elements)(Ordering[Element[T]].reverse)
         if (elements.exists(el => el.getStrength.isPosInfinity)) break()
       }
     }
