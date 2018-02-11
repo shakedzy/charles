@@ -26,10 +26,14 @@ class Examples extends FunSuite {
         allValues(r)
       })
     })
-    val model = new Model(population, allValues, strengthFunction, OffspringFunctions.sliceAndStitch(allValues, random), generations = 40, seed = seed)
-    println("Starting population:\n----------------------------------")
+    val model = new Model(population, allValues, strengthFunction, OffspringFunctions.sliceAndStitch(allValues, random),
+      generations = 40, seed = seed)
+    println("Reach 42 - Starting population:\n----------------------------------")
     population.foreach(el => println(s"${el.mkString(" ")}  =  ${calculator.evaluate(el.mkString(""))}"))
     model.evolve()
-    println(s"----------------------------------\nModel's best result:\n${model.getBest.mkString(" ")}  =  ${calculator.evaluate(model.getBest.mkString(""))}")
+    val best = model.getBest.mkString(" ")
+    val result = calculator.evaluate(best)
+    println(s"----------------------------------\nModel's best result:\n$best  =  $result")
+    assert(result==42)
   }
 }

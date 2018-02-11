@@ -68,12 +68,11 @@ Examples are found in the project's test directory, in the `Examples.scala` Clas
 ### Reach 42:
 Each subject in the population is a mathematical equation, made of four integers from 0 to 9 and three
 operators from [+,-,*,/]. Each subject is represented as sequence of single-character strings of either
-a digit or an operator. The model's objective is to find a set of digits and characters which will
+a digit or an operator (so `T` is `String`). The model's objective is to find a set of digits and characters which will
 yield 42. The Strength Function is defined as the absolute value of the result of 1/(x-42).
 
 
 ## To do:
-* Examples in tests are not running using `mvn test`
 * Code documentation
 * Notifications about early stops (Inf or population is dead)
 * Handle duplication of the same element in population
