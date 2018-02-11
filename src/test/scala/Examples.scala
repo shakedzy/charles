@@ -4,9 +4,9 @@ import com.fathzer.soft.javaluator.DoubleEvaluator
 import shakedzy.charles._
 
 class Examples extends FunSuite {
-  test("Closest to 42") {
+  test("Reach 42") {
     val calculator = new DoubleEvaluator()
-    val seed: Long = 1518294286004L
+    val seed = 1518336961899L
 
     def strengthFunction(values: Seq[String]): Double = {
       try {
