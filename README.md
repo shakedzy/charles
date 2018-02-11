@@ -43,7 +43,7 @@ val solution = model.getBest
 Basic parameters (for some basic parameter-type `T`):
 * `population: Seq[Seq[T]]`: The population which needs to evolve. Each subject (or element) in the
  population is represented as a sequence of values of type `T`
-* `allValues: Seq[T]`: A sequence of all the possible values allowed in each subject of the population
+* `allValues: Seq[T]`: A sequence of all the possible values (genes) allowed in each subject of the population
 * `strengthFunction: Seq[T] => Double`: A function that accepts a subject of the population and determines 
  its strength, in the range of [0, Inf], the higher the strength is, the closer the subject is to the 
  desired state
@@ -67,7 +67,7 @@ Examples are found in the project's test directory, in the `Examples.scala` Clas
 
 ### Reach 42:
 Each subject in the population is a mathematical equation, made of four integers from 0 to 9 and three
-operators from [+,-,*,/]. Each subject is represented as sequence of single-character strings of either
+operators from `[+,-,*,/]`. Each subject is represented as sequence of single-character strings of either
 a digit or an operator (so `T` is `String`). The model's objective is to find a set of digits and characters which will
 yield 42. The Strength Function is defined as the absolute value of the result of 1/(x-42).
 
