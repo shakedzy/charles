@@ -52,7 +52,7 @@ Basic parameters (for some basic parameter-type `T`):
 
 More configurations:
 * `elitismRatio: Double`: Must be in the range of [0,1]. Determines the percentage of elitists in each 
- iteration. Elitists are the strongest subject in their generation, and therefore survive and move 
+ iteration. Elitists are the strongest subject in their generation, and therefore survive and advance 
  untouched to the next generation (mutation can still apply). Default value: 0.1
 * `mutationsOdds: Double`: Must be in the range of [0,1]. Determines the probability for mutation of 
  the subjects in each generation. A mutation is a single binary bit in the subject's genes being randomly
@@ -73,7 +73,6 @@ yield 42. The Strength Function is defined as the absolute value of the result o
 
 
 ## To do:
-* Code documentation
 * Notifications about early stops (Inf or population is dead)
 * Handle duplication of the same element in population
 

@@ -4,6 +4,29 @@ import scala.util.Sorting
 import scala.math._
 import scala.util.control.Breaks._
 
+/** A Genetic Model. The model accepts a population and certain predefined parameters, by which it will let
+  * the population evolve, as it tries to reach perfection.
+  *
+  * @constructor create a new Genetic Model
+  * @param population a sequence of subjects (sometimes refer to as Chromosomes in Genetic Model's terminology),
+  *                   where each subject is a sequence of genes, each of type T
+  * @param allValues a sequence of all possible values any single gene can have
+  * @param strengthFunction a function that maps a subject in the population to a non-negative number from 0 to Inf,
+  *                         which represents its strength, and therefore it probability to survive and reproduce. The
+  *                         higher the number, the stronger the subject is
+  * @param offspringFunction a reproduction function that maps two subjects to two new subjects. This is the
+  *                          definition of the reproduction mechanism works, and how to create the offspring of
+  *                          two subjects in the population
+  * @param elitismRatio a continuous number in the range [0,1], representing the percentage of elitists in each
+  *                     generation. Elitists are the strongest subject in their generation, and therefore survive and
+  *                     advance untouched to the next generation (mutation can still apply)
+  * @param mutationsOdds a continuous number in the range [0,1], which determines the probability for mutation of
+  *                      the subjects in each generation. A mutation is a single binary bit in the subject's genes
+  *                      being randomly flipped (subjects are transformed to binary representation behind the scenes)
+  * @param generations a non-negative integer, which determines the number of iterations the model will do
+  * @param seed a seed to be supplied to the model's pseudo-random number generator
+  * @tparam T the type of a single gene of each subject in the population
+  */
 class Model[T](population: Seq[Seq[T]],
                allValues: Seq[T],
                strengthFunction: Seq[T] => Double,
@@ -22,7 +45,6 @@ class Model[T](population: Seq[Seq[T]],
   protected var elements: Array[Element[T]] = _
 
   protected implicit val random: Random = new Random
-  //private implicit val order: Ordering[Element[T]] = Ordering[Element[T]].reverse
 
   setStrengthFunction(strengthFunction)
   setOffspringFunction(offspringFunction)
@@ -62,8 +84,19 @@ class Model[T](population: Seq[Seq[T]],
   def getPopulation: Seq[Seq[T]] = elements.map(_.getGenes)
   def getOffspringFunction: (Seq[T],Seq[T]) => (Seq[T],Seq[T]) = _offspringFunction
 
+  /** This function removes all Elements of the population with strength 0, as they have no chance of
+    * reproduce or survive
+    */
   protected def killMisfits(): Unit = elements = elements.filter(_.getStrength > 0.0)
 
+  /** This function randomly selects a single Element of a population based on their strength.
+    * An ordered population is prefered for performance, where the first Element of the population has
+    * the highest probability of survival and reproduction, and the rest are ordered by a decreasing
+    * order of their strength (and survival probability).
+    *
+    * @param ignoreThisElement if defined, this Element will not participate in the random selection
+    * @return a random Element
+    */
   protected def selectElement(ignoreThisElement: Option[Element[T]] = None): Element[T] = {
     val r = ignoreThisElement match {
       case None => random.nextPositiveDouble()
@@ -88,10 +121,27 @@ class Model[T](population: Seq[Seq[T]],
     selected
   }
 
+  /** Reset the population to the initial population
+    */
   def reset(): Unit = setPopulation(population)
+
+  /** Returns the strongest subject in the population
+    *
+    * @return a sequence of genes (values of type T)
+    */
   def getBest: Seq[T] = elements.head.getGenes
+
+  /** Returns the n strongest subject in the population
+    *
+    * @param n how many subjects should be returned
+    * @return a sequence of subjects, each itself a sequence of genes (values of type T)
+    */
   def getBest(n: Int): Seq[Seq[T]] = elements.take(n).map(_.getGenes)
 
+  /** The model's main procedure. This starts the evolution of the subjects of the population
+    * for the specified amount of generations. This includes reproduction, elitists survival
+    * and mutation.
+    */
   def evolve(): Unit = {
     breakable {
       for (g <- Range(0,_generations+1)) {
