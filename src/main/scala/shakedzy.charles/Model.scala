@@ -24,6 +24,13 @@ import scala.util.control.Breaks._
   *                      the subjects in each generation. A mutation is a single binary bit in the subject's genes
   *                      being randomly flipped (subjects are transformed to binary representation behind the scenes)
   * @param generations a non-negative integer, which determines the number of iterations the model will do
+  * @param duplicationPolicy defines how the model should treat the case of duplicates of the same subject in the
+  *                          population in each generation. Can be either "ignore" (leave duplicates in the population),
+  *                          "kill" (remove duplicates, number of subjects in the population will decrease) or "replace"
+  *                          (duplicates will bre replaced with new Elements created in the same way as reproducing).
+  *                          The "replace" option can also be "replace:x" where x is a positive integer, defining the
+  *                          number of attempts the model will try to replace duplicates with new Elements. In any case,
+  *                          The size of the population will not change when using the "replace" policy.
   * @param seed a seed to be supplied to the model's pseudo-random number generator
   * @tparam T the type of a single gene of each subject in the population
   */
@@ -34,28 +41,52 @@ class Model[T](population: Seq[Seq[T]],
                elitismRatio: Double = 0.1,
                mutationsOdds: Double = 0.001,
                generations: Int = 10,
+               duplicationPolicy: String = "ignore",
                seed: Long = System.currentTimeMillis()) {
+
+  private val defaultEndReason = (-1, null)
+  private val defaultDuplicationReplaceAttempts = 3
+  protected implicit val random: Random = new Random
 
   protected var _strengthFunction: Seq[T] => Double = _
   protected var _offspringFunction: (Seq[T],Seq[T]) => (Seq[T],Seq[T]) = _
   protected var _elitismRatio: Double = _
   protected var _mutationsOdds: Double = _
   protected var _generations: Int = _
+  protected var _duplicationPolicy: String = _
   protected var _seed: Long = _
   protected var elements: Array[Element[T]] = _
-
-  protected implicit val random: Random = new Random
+  protected var endReason: (Int, String) = defaultEndReason
+  protected var currentGeneration: Int = 0
+  protected var duplicationReplaceAttempts: Int = defaultDuplicationReplaceAttempts
 
   setStrengthFunction(strengthFunction)
   setOffspringFunction(offspringFunction)
   setElitismRatio(elitismRatio)
   setMutationOdds(mutationsOdds)
   setGenerations(generations)
+  setDuplicationPolicy(duplicationPolicy)
   setSeed(seed)
   setPopulation(population)
 
   def setStrengthFunction(strengthFunction: Seq[T] => Double): Unit = _strengthFunction = strengthFunction
   def setOffspringFunction(offspringFunction: (Seq[T],Seq[T]) => (Seq[T],Seq[T])): Unit = _offspringFunction = offspringFunction
+  def setDuplicationPolicy(duplicationPolicy: String): Unit = {
+    val dp = duplicationPolicy.toLowerCase
+    dp match {
+      case "ignore" | "kill" | "replace" =>
+        _duplicationPolicy = dp
+        duplicationReplaceAttempts = defaultDuplicationReplaceAttempts
+      case policy if policy.startsWith("replace:") =>
+        _duplicationPolicy = "replace"
+        duplicationReplaceAttempts = try {
+          val att = policy.split(":")(1).toInt
+          if (att < 1) throw new RuntimeException("")
+          else att
+        } catch {case _: Exception => throw new RuntimeException("Invalid number of attempts!")}
+      case _ => throw new RuntimeException("Invalid duplication policy!")
+    }
+  }
   def setElitismRatio(elitismRatio: Double): Unit =
     if (elitismRatio < 0 || elitismRatio > 1) throw new RuntimeException("Elitism Ratio must be in the range [0,1]")
     else _elitismRatio = elitismRatio
@@ -83,6 +114,11 @@ class Model[T](population: Seq[Seq[T]],
   def getElements: Array[Element[T]] = elements
   def getPopulation: Seq[Seq[T]] = elements.map(_.getGenes)
   def getOffspringFunction: (Seq[T],Seq[T]) => (Seq[T],Seq[T]) = _offspringFunction
+  def getEndReason: (Int, String) = endReason
+  def getCurrentGeneration: Int = currentGeneration
+  def getDuplicationPolicy: String =
+    if (_duplicationPolicy == "replace") s"${_duplicationPolicy}:$duplicationReplaceAttempts"
+    else _duplicationPolicy
 
   /** This function removes all Elements of the population with strength 0, as they have no chance of
     * reproduce or survive
@@ -123,7 +159,11 @@ class Model[T](population: Seq[Seq[T]],
 
   /** Reset the population to the initial population
     */
-  def reset(): Unit = setPopulation(population)
+  def reset(): Unit = {
+    setPopulation(population)
+    endReason = defaultEndReason
+    currentGeneration = 0
+  }
 
   /** Returns the strongest subject in the population
     *
@@ -138,35 +178,78 @@ class Model[T](population: Seq[Seq[T]],
     */
   def getBest(n: Int): Seq[Seq[T]] = elements.take(n).map(_.getGenes)
 
+  /** This function handles the case of duplicate Elements in the population according
+    * to the selected policy.
+    */
+  private def handleDuplicates(): Unit = {
+    _duplicationPolicy match {
+      case "kill" => elements = elements.distinct
+      case "ignore" => Unit //do nothing
+      case "replace" =>
+        breakable {
+          for (_ <- Range(0,duplicationReplaceAttempts)) {
+            val n = elements.length
+            elements = elements.distinct
+            val missing = n - elements.length
+            if (missing == 0) break()
+            val numberOfCouples = ceil(missing/2).toInt
+            val newElements = breed(numberOfCouples).drop(missing % 2)
+            elements = elements ++ newElements
+          }
+        }
+    }
+  }
+
+  /** This function is responsible for creating a pair of new Elements based on the number of pairs
+    * requested. The model's offspringFunction is used for the creation of new Elements.
+    *
+    * @param numberOfCouples the number of pairs of new Elements to create
+    * @return a sequence of the new Elements created
+    */
+  private def breed(numberOfCouples: Int): Seq[Element[T]] = {
+    var elements = Seq.empty[Element[T]]
+    for (_ <- Range(0,numberOfCouples)) {
+      val father = selectElement()
+      val mother = selectElement(ignoreThisElement = Option(father))
+      val (child1genes, child2genes) = _offspringFunction(father.getGenes,mother.getGenes)
+      elements = elements :+ new Element(child1genes) :+ new Element(child2genes)
+    }
+    elements
+  }
+
   /** The model's main procedure. This starts the evolution of the subjects of the population
     * for the specified amount of generations. This includes reproduction, elitists survival
     * and mutation.
     */
   def evolve(): Unit = {
+    endReason = defaultEndReason
     breakable {
       for (g <- Range(0,_generations+1)) {
+        currentGeneration = g
         if (g > 0) {
           val elNum = elements.length
           killMisfits()
-          if (elements.length < 2) break()
-          val elitistsNum = round(_elitismRatio * elNum).toInt
-          var nextGen = elements.take(elitistsNum)
-          val remainingNum = floor((elNum - elitistsNum)/2).toInt
-          for (_ <- Range(0,remainingNum)) {
-            val father = selectElement()
-            val mother = selectElement(ignoreThisElement = Option(father))
-            val (child1genes, child2genes) = _offspringFunction(father.getGenes,mother.getGenes)
-            nextGen = nextGen :+ new Element(child1genes) :+ new Element(child2genes)
+          if (elements.length < 2) {
+            endReason = (2, "Population perished")
+            break()
           }
-          elements = nextGen
+          val elitistsNum = round(_elitismRatio * elNum).toInt
+          var elitists = elements.take(elitistsNum)
+          val remainingCouplesNum = floor((elNum - elitistsNum)/2).toInt
+          elements = elitists ++ breed(remainingCouplesNum)
+          handleDuplicates()
           elements.foreach(_.mutate(_mutationsOdds,allValues))
         }
         elements.foreach(_.setStrength(_strengthFunction))
         val totalStrength = elements.map(_.getStrength).sum
         elements.foreach(_.strengthToProbability(totalStrength))
         Sorting.quickSort[Element[T]](elements)(Ordering[Element[T]].reverse)
-        if (elements.exists(el => el.getStrength.isPosInfinity)) break()
+        if (elements.exists(el => el.getStrength.isPosInfinity)) {
+          endReason = (1, "Ideal solution found")
+          break()
+        }
       }
     }
+    if (endReason._1 == -1) endReason = (0, "Evolution completed")
   }
 }

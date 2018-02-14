@@ -39,7 +39,7 @@ class Examples extends FunSuite {
 
     // Setting up the model
     val model = new Model(population, allValues, strengthFunction(calculator), OffspringFunctions.sliceAndStitch(allValues, random),
-      generations = 40, seed = seed)
+      generations = 15, seed = seed)
     println("Reach 42 - Starting population:\n----------------------------------")
     population.foreach(el => println(s"${el.mkString(" ")}  =  ${calculator.evaluate(el.mkString(""))}"))
 
@@ -49,7 +49,10 @@ class Examples extends FunSuite {
     // Best solution is chosen
     val best = model.getBest.mkString(" ")
     val result = calculator.evaluate(best)
-    println(s"----------------------------------\nModel's best result:\n$best  =  $result")
+    println(s"----------------------------------")
+    println(s"Evolution end cause: ${model.getEndReason._2} [Reason ID: ${model.getEndReason._1}]")
+    println(s"Iterations required: ${model.getCurrentGeneration}")
+    println(s"Model's best result: $best  =  $result")
     assert(result==42)
   }
 }

@@ -59,6 +59,8 @@ More configurations:
  flipped. Default value: 0.001
 * `generations: Int`: Must be a positive integer. The number of iterations the model should run through
  before stopping. Default value: 10
+* `duplicationPolicy: String`: The policy of the model regarding duplicates in the population. See
+ the class's documentation for more info. 
 * `seed: Long` = A seed to be supplied to the model's pseudo-random number generator. Default value:
  system time (`System.currentTimeMillis()`)
  
@@ -70,11 +72,6 @@ Each subject in the population is a mathematical equation, made of four integers
 operators from `[+,-,*,/]`. Each subject is represented as sequence of single-character strings of either
 a digit or an operator (so `T` is `String`). The model's objective is to find a set of digits and characters which will
 yield 42. The Strength Function is defined as the absolute value of the result of 1/(x-42).
-
-
-## To do:
-* Notifications about early stops (Inf or population is dead)
-* Handle duplication of the same element in population
 
 ### License:
 Apache License 2.0
