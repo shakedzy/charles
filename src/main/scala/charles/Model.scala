@@ -1,4 +1,4 @@
-package shakedzy.charles
+package charles
 
 import scala.util.Sorting
 import scala.math._

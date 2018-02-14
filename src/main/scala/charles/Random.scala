@@ -1,4 +1,4 @@
-package shakedzy.charles
+package charles
 
 class Random extends scala.util.Random {
   /** Generated a random Double, based on [[scala.util.Random]], only the number wiil

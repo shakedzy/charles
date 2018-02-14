@@ -1,7 +1,7 @@
 import org.scalatest.FunSuite
 import scala.util.Random
 import com.fathzer.soft.javaluator.DoubleEvaluator
-import shakedzy.charles._
+import charles._
 
 class Examples extends FunSuite {
   /** In this example, the population is made out of 30 combinations of simple mathematical equations. Each

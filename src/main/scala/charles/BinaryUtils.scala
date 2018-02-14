@@ -1,4 +1,4 @@
-package shakedzy.charles
+package charles
 
 object BinaryUtils {
   /** Pads a binary String with additional zeros.

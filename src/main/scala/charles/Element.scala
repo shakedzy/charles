@@ -1,4 +1,4 @@
-package shakedzy.charles
+package charles
 
 import scala.math.{Ordered, signum}
 
