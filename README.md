@@ -35,7 +35,7 @@ Add this to your projects's `pom.xml` file under `<dependecies>`:
 ## Usage:
 Quick start:
 ```
-import shakedzy.charles._
+import charles._
 val model = new Model(population, allValues, strengthFunction, offspringFunction)
 model.evolve()
 val solution = model.getBest

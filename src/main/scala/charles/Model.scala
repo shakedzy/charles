@@ -234,7 +234,7 @@ class Model[T](population: Seq[Seq[T]],
             break()
           }
           val elitistsNum = round(_elitismRatio * elNum).toInt
-          var elitists = elements.take(elitistsNum)
+          val elitists = elements.take(elitistsNum)
           val remainingCouplesNum = floor((elNum - elitistsNum)/2).toInt
           elements = elitists ++ breed(remainingCouplesNum)
           handleDuplicates()
@@ -250,6 +250,6 @@ class Model[T](population: Seq[Seq[T]],
         }
       }
     }
-    if (endReason._1 == -1) endReason = (0, "Evolution completed")
+    if (endReason == defaultEndReason) endReason = (0, "Evolution completed")
   }
 }
