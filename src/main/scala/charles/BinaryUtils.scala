@@ -17,6 +17,18 @@ object BinaryUtils {
     List.fill(paddingSize)('0').mkString("") + binaryString
   }
 
+  /** A helper function that decodes the binary-bits string provided and returns the
+    * value it refers to. It also handles the situation where the binary-string decoding
+    * points to a value that does not exist.
+    *
+    * @param binaryString a string of a binary encoding of one of the values in the values sequence
+    * @param allValues all possible values that the binary string can be decoded to
+    * @tparam T the type of the values in the provided sequence
+    * @return the decoded value
+    */
+  def getValueOfBinaryString[T](binaryString: String, allValues: Seq[T]): T =
+    allValues(Integer.parseInt(binaryString,2) % allValues.length)
+
   /** Flips the character '1' to '0' and vice-versa. Throws an error for any other value.
     *
     * @param bit a character, either '1' or '0'
@@ -83,6 +95,6 @@ object BinaryUtils {
     * @return a sequence of elements of type T, decoded from the provided string
     */
   def binaryStringToSeq[T](bits: String, values: Seq[T]): Seq[T] = {
-    bits.grouped(getSingleGeneBitsNum(values)).toSeq.map(bits => Integer.parseInt(bits,2) % values.length).map(values(_)).toList
+    bits.grouped(getSingleGeneBitsNum(values)).toSeq.map(bits => getValueOfBinaryString(bits,values)).toList
   }
 }

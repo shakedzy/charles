@@ -1,6 +1,7 @@
 package charles
 
 import scala.math.{Ordered, signum}
+import charles.BinaryUtils
 
 /** An Element is a single subject extension in the overall population. I consists of several genes (of type T).
   * An Element has a strength which is derived from a certain predefined Strength Function (sometimes
@@ -70,8 +71,7 @@ class Element[T](genes: Seq[T]) extends Ordered[Element[T]]{
         val r = random.nextDouble()
         if (r <= mutationOdds) BinaryUtils.flipBitChar(b) else b
       })
-      val newIndex = Integer.parseInt(mutatedBits,2) % values.length
-      values(newIndex)
+      BinaryUtils.getValueOfBinaryString(mutatedBits,values)
     })
     setGenes(newGenes)
   }
