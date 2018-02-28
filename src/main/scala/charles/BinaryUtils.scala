@@ -76,7 +76,7 @@ object BinaryUtils {
   }
 
   /** Convert a string of a binary representation to a sequence of elements of type T. This is the opposite
-    * of getSingleGeneBitsNum.
+    * of seqToBinaryString.
     *
     * {{{
     * scala> binaryStringToSeq("0010",Seq("X","Y","Z"))

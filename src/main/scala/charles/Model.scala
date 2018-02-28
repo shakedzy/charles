@@ -126,7 +126,7 @@ class Model[T](population: Seq[Seq[T]],
   protected def killMisfits(): Unit = elements = elements.filter(_.getStrength > 0.0)
 
   /** This function randomly selects a single Element of a population based on their strength.
-    * An ordered population is prefered for performance, where the first Element of the population has
+    * An ordered population is preferred for performance, where the first Element of the population has
     * the highest probability of survival and reproduction, and the rest are ordered by a decreasing
     * order of their strength (and survival probability).
     *

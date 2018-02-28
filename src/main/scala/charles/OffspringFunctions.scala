@@ -7,10 +7,10 @@ object OffspringFunctions {
   /** This function creates new subjects by taking the two subjects provided, transform then to a binary encoding
     * and then randomly selecting a position where they will be sliced. The new subjects are made of the first part
     * of one subject and the second part of the second subject. As an example, assume the binary encoding of the two
-    * subjects are s1 = "000000" and s2 = "111111", and assume the random poition was chosen right in the middle.
+    * subjects are s1 = "000000" and s2 = "111111", and assume the random position was chosen right in the middle.
     * The two new subjects will be s1_new = "000111" and s2_new = "111000"
     *
-    * @param values a sequence of all values of type T which a subject in te population can have
+    * @param values a sequence of all values of type T which a subject in the population can have
     * @param random an instance of [[scala.util.Random]]
     * @param element1 one subject of the population, a sequence of values of type T
     * @param element2 a second subject of the population, a sequence of values of type T

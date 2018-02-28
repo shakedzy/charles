@@ -1,7 +1,6 @@
 package charles
 
 import scala.math.{Ordered, signum}
-import charles.BinaryUtils
 
 /** An Element is a single subject extension in the overall population. I consists of several genes (of type T).
   * An Element has a strength which is derived from a certain predefined Strength Function (sometimes
